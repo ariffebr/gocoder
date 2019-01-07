@@ -12,7 +12,7 @@ type GoStruct struct {
 
 	goFields []*GoField
 
-	goFuncs []*GoFunc
+	methods []*GoFunc
 
 	spec *ast.TypeSpec
 }
@@ -46,12 +46,12 @@ func (p *GoStruct) Field(i int) *GoField {
 	return p.goFields[i]
 }
 
-func (p *GoStruct) NumFuncs() int {
-	return len(p.goFuncs)
+func (p *GoStruct) NumMethod() int {
+	return len(p.methods)
 }
 
-func (p *GoStruct) Func(i int) *GoFunc {
-	return p.goFuncs[i]
+func (p *GoStruct) Method(i int) *GoFunc {
+	return p.methods[i]
 }
 
 func (p *GoStruct) Position() (token.Position, token.Position) {
@@ -85,7 +85,7 @@ func (p *GoStruct) loadFuncs() {
 			fn := goPckg.Func(i)
 
 			if fn.Receiver() == p.Name() {
-				p.goFuncs = append(p.goFuncs, fn)
+				p.methods = append(p.methods, fn)
 			}
 		}
 
