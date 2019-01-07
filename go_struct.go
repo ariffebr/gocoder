@@ -10,7 +10,9 @@ type GoStruct struct {
 
 	astExpr *ast.StructType
 
-	goFileds []*GoField
+	goFields []*GoField
+
+	goFuncs []*GoFunc
 
 	spec *ast.TypeSpec
 }
@@ -41,7 +43,15 @@ func (p *GoStruct) NumFields() int {
 }
 
 func (p *GoStruct) Field(i int) *GoField {
-	return p.goFileds[i]
+	return p.goFields[i]
+}
+
+func (p *GoStruct) NumFuncs() int {
+	return len(p.goFuncs)
+}
+
+func (p *GoStruct) Func(i int) *GoFunc {
+	return p.goFuncs[i]
 }
 
 func (p *GoStruct) Position() (token.Position, token.Position) {
@@ -61,7 +71,25 @@ func (p *GoStruct) load() {
 		goFileds = append(goFileds, newGoField(p.rootExpr, field))
 	}
 
-	p.goFileds = goFileds
+	p.goFields = goFileds
+
+	p.loadFuncs()
+}
+
+func (p *GoStruct) loadFuncs() {
+
+	goPckg := p.rootExpr.options.GoPackage
+
+	if goPckg != nil {
+		for i := 0; i < goPckg.NumFuncs(); i++ {
+			fn := goPckg.Func(i)
+
+			if fn.Receiver() == p.Name() {
+				p.goFuncs = append(p.goFuncs, fn)
+			}
+		}
+
+	}
 }
 
 func (p *GoStruct) goNode() {}
