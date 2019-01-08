@@ -1,8 +1,10 @@
 package gocoder
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
+	"strings"
 )
 
 type GoStruct struct {
@@ -15,6 +17,8 @@ type GoStruct struct {
 	methods []*GoFunc
 
 	spec *ast.TypeSpec
+
+	structTag string
 }
 
 func newGoStruct(rootExpr *GoExpr, spec *ast.TypeSpec, expr *ast.StructType, options ...Option) *GoStruct {
@@ -74,6 +78,55 @@ func (p *GoStruct) load() {
 	p.goFields = goFileds
 
 	p.loadFuncs()
+}
+
+func (p *GoStruct) Tag() StructTag {
+	decls := p.rootExpr.astFile.Decls
+
+	for _, decl := range decls {
+
+		if dcl, ok := decl.(*ast.GenDecl); ok {
+			specs := dcl.Specs
+			for _, spec := range specs {
+
+				if s, ok2 := spec.(*ast.TypeSpec); ok2 {
+					if s.Name.Name == p.Name() {
+						fmt.Println("Stuct Found!!! ---------> ", s.Name)
+
+						docList := dcl.Doc.List
+
+						var tags []string
+						for _, doc := range docList {
+
+							if strings.Contains(doc.Text, "`") && strings.Count(doc.Text, "`") > 1 {
+								tag := doc.Text[strings.Index(doc.Text, "`") : strings.LastIndex(doc.Text, "`")+1]
+								tag = strings.Trim(tag, "\"")
+								tag = strings.Trim(tag, "`")
+
+								for {
+									if !strings.HasSuffix(tag, ";") {
+										break
+									}
+									fmt.Println("has suffix semicolon")
+									tag = tag[0 : len(tag)-1]
+								}
+								tag = strings.TrimSpace(tag)
+								tags = append(tags, tag)
+							}
+						}
+
+						if len(tags) == 0 {
+							break
+						}
+						return StructTag(strings.Join(tags, ";"))
+					}
+				}
+			}
+
+		}
+	}
+
+	return StructTag("")
 }
 
 func (p *GoStruct) loadFuncs() {

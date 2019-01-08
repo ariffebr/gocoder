@@ -33,7 +33,7 @@ type GoFile struct {
 
 func NewGoFile(filename string, options ...Option) (goFile *GoFile, err error) {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, filename, nil, 0)
+	f, err := parser.ParseFile(fset, filename, nil, 4)
 	if err != nil {
 		return
 	}
